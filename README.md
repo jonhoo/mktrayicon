@@ -30,7 +30,7 @@ cause the tray icon to be removed.
 
 ## Example run
 
-```shell
+```bash
 #!/bin/bash
 
 # Set up tray icon
