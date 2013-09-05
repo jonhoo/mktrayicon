@@ -84,3 +84,9 @@ mktrayicon: xcb_io.c:274: poll_for_event: Assertion `!xcb_xlib_threads_sequence_
 ```
 
 If someone has a genious way to fix this, patches are welcome.
+
+Also, it would be nice if removing the FIFO file would cause `mktrayicon` to
+exit automatically as if "q" was sent. Unfortunately, this is not entirely
+trivial to implement. Have a look
+[here](http://stackoverflow.com/questions/18643486/detect-deletion-of-fifo-file-with-blocking-open)
+and send a patch my way if you know how to do it.
