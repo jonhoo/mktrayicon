@@ -11,6 +11,7 @@
 #include <pthread.h>
 #include <sys/stat.h>
 
+GMainContext *mainc;
 GtkStatusIcon *icon;
 char *onclick = NULL;
 
@@ -75,14 +76,16 @@ void *watch_fifo(void *argv)
 	while (1) {
 		if (stat(fifo_path, &fifo_st) != 0) {
 			perror("FIFO does not exist, exiting\n");
-			g_main_context_invoke(NULL, do_quit, fifo);
+			g_main_context_invoke(mainc, do_quit, fifo);
+			break;
 		}
 
 		fifo = fopen(fifo_path, "r");
 
 		if (fifo == NULL) {
 			perror("FIFO went away, exiting\n");
-			g_main_context_invoke(NULL, do_quit, fifo);
+			g_main_context_invoke(mainc, do_quit, fifo);
+			break;
 		}
 
 		read = fgets(buf, 1024 * sizeof(char), fifo);
@@ -105,19 +108,19 @@ void *watch_fifo(void *argv)
 
 		switch (*buf) {
 		case 'q':
-			g_main_context_invoke(NULL, do_quit, param);
+			g_main_context_invoke(mainc, do_quit, param);
 			break;
 		case 't': /* tooltip */
-			g_main_context_invoke(NULL, set_tooltip, param);
+			g_main_context_invoke(mainc, set_tooltip, param);
 			break;
 		case 'i': /* icon */
-			g_main_context_invoke(NULL, set_icon, param);
+			g_main_context_invoke(mainc, set_icon, param);
 			break;
 		case 'h': /* hide */
-			g_main_context_invoke(NULL, set_visible, (void *)0);
+			g_main_context_invoke(mainc, set_visible, (void *)0);
 			break;
 		case 's': /* show */
-			g_main_context_invoke(NULL, set_visible, (void *)1);
+			g_main_context_invoke(mainc, set_visible, (void *)1);
 			break;
 		case 'c': /* click */
 			if (onclick != NULL) {
@@ -180,6 +183,7 @@ int main(int argc, char **argv)
 	}
 
 	icon = create_tray_icon(start_icon);
+	mainc = g_main_context_default();
 	pthread_create(&reader, NULL, watch_fifo, argv[argc-1]);
 	gtk_main();
 	return 0;
