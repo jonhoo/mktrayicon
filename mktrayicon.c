@@ -166,7 +166,7 @@ static GtkStatusIcon *create_tray_icon(char *start_icon)
 
 int main(int argc, char **argv)
 {
-	char *start_icon = "image-missing";
+	char *start_icon = "none";
 	char *app = argv[0];
 	FILE *fifo;
 	pthread_t reader;
