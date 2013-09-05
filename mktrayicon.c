@@ -73,6 +73,7 @@ void *watch_fifo(void *argv)
 	FILE *fifo;
 	struct stat fifo_st;   
 
+	/* outer is for open */
 	while (1) {
 		if (stat(fifo_path, &fifo_st) != 0) {
 			perror("FIFO does not exist, exiting\n");
@@ -88,10 +89,23 @@ void *watch_fifo(void *argv)
 			break;
 		}
 
+	/* inner is for read */
+	while (1) {
 		read = fgets(buf, 1024 * sizeof(char), fifo);
 
-		if (read == NULL || *buf == '\n') {
-			fprintf(stderr, "No data in pipe - did you send a command?\n");
+		if (read == NULL) {
+			/* no more data in pipe, reopen and block */
+			fclose(fifo);
+			break;
+		}
+
+		/* trim string */
+		while ((*read == '\n' || *read == ' ' || *read == '\t') && *read != '\0') {
+			read++;
+		}
+
+		if (*read == '\0') {
+			/* empty command */
 			continue;
 		}
 
@@ -145,6 +159,7 @@ void *watch_fifo(void *argv)
 		}
 
 		gdk_flush();
+	}
 	}
 	return NULL;
 }
