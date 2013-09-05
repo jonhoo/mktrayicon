@@ -31,6 +31,12 @@ void tray_icon_on_menu(GtkStatusIcon *status_icon, guint button,
 gboolean set_tooltip(gpointer data)
 {
 	char *p = (char*)data;
+	if (*p == '\0') {
+		printf("Removing tooltip\n");
+		gtk_status_icon_set_has_tooltip(icon, FALSE);
+		return FALSE;
+	}
+
 	printf("Setting tooltip to '%s'\n", p);
 	gtk_status_icon_set_tooltip_text(icon, p);
 	return FALSE;
@@ -93,6 +99,9 @@ void *watch_fifo(void *argv)
 
 		/* only read from this if you *know* there are more arguments */
 		param = buf + 2;
+		if (len < 3) {
+			*param = '\0';
+		}
 
 		switch (*buf) {
 		case 'q':
@@ -116,7 +125,7 @@ void *watch_fifo(void *argv)
 				onclick = NULL;
 			}
 
-			if (len < 3) {
+			if (*param == '\0') {
 				printf("Removing onclick handler\n");
 				break;
 			}
