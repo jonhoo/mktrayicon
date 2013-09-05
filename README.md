@@ -28,6 +28,12 @@ Note that any script communicating with `mktrayicon` **must**, for the time
 being, send `q` when they are done. Just removing the FIFO file will **not**
 cause the tray icon to be removed.
 
+## Why?
+
+Because I wanted to be able to create tray icons from bash without all the
+hassle of interacting with GTK. Now I can create scripts for measuring stuff and
+instantly make tray icons out of them (3G signal strength for example).
+
 ## Example run
 
 ```bash
