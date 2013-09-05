@@ -1,0 +1,33 @@
+# Maintainer: Jon Gjengset <jon@tsp.io>
+_gitname=mktrayicon
+pkgname=$_gitname-git
+pkgver=11.df5ae8f
+pkgrel=1
+pkgdesc="Create system tray icons by writing to a pipe"
+arch=('any')
+url="https://github.com/Jonhoo/mktrayicon"
+license=('MIT')
+depends=('gtk3')
+makedepends=('git')
+provides=($_gitname)
+conflicts=($_gitname)
+install=
+source=('git+https://github.com/Jonhoo/mktrayicon.git')
+md5sums=('SKIP')
+
+pkgver() {
+  cd $_gitname
+  echo $(git rev-list --count HEAD).$(git rev-parse --short HEAD)
+}
+
+build() {
+  cd $_gitname
+  make
+}
+
+package() {
+  cd $_gitname
+  install -Dm 755 mktrayicon $pkgdir/usr/bin/mktrayicon
+}
+
+# vim:set ts=2 sw=2 et:
