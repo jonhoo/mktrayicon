@@ -179,7 +179,6 @@ static GtkStatusIcon *create_tray_icon(char *start_icon)
 int main(int argc, char **argv)
 {
 	char *start_icon = "none";
-	char *app = argv[0];
 	FILE *fifo;
 	pthread_t reader;
 
@@ -190,7 +189,12 @@ int main(int argc, char **argv)
 	}
 
 	if (argc == 1) {
-		/* usage */
+		printf("Usage: %s [-i ICON] FIFO\n", *argv);
+		printf("Listen to FIFO for system tray icon specifications\n");
+		printf("\n");
+		printf("  -i ICON\tUse the specified ICON when initializing\n");
+		printf("\n");
+		printf("Report bugs at https://github.com/jonhoo/mktrayicon\n");
 		return 0;
 	}
 
