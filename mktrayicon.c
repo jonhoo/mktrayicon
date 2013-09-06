@@ -8,10 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
 #include <sys/stat.h>
 
-GMainContext *mainc;
 GtkStatusIcon *icon;
 char *onclick = NULL;
 
@@ -63,7 +61,7 @@ gboolean do_quit(gpointer data)
 	return FALSE;
 }
 
-void *watch_fifo(void *argv)
+gpointer watch_fifo(gpointer argv)
 {
 	char *buf = malloc(1024*sizeof(char));
 	char *param;
@@ -77,7 +75,7 @@ void *watch_fifo(void *argv)
 	while (1) {
 		if (stat(fifo_path, &fifo_st) != 0) {
 			perror("FIFO does not exist, exiting\n");
-			g_main_context_invoke(mainc, do_quit, fifo);
+			gdk_threads_add_idle(do_quit, fifo);
 			break;
 		}
 
@@ -85,7 +83,7 @@ void *watch_fifo(void *argv)
 
 		if (fifo == NULL) {
 			perror("FIFO went away, exiting\n");
-			g_main_context_invoke(mainc, do_quit, fifo);
+			gdk_threads_add_idle(do_quit, fifo);
 			break;
 		}
 
@@ -122,19 +120,19 @@ void *watch_fifo(void *argv)
 
 		switch (*buf) {
 		case 'q':
-			g_main_context_invoke(mainc, do_quit, param);
+			gdk_threads_add_idle(do_quit, param);
 			break;
 		case 't': /* tooltip */
-			g_main_context_invoke(mainc, set_tooltip, param);
+			gdk_threads_add_idle(set_tooltip, param);
 			break;
 		case 'i': /* icon */
-			g_main_context_invoke(mainc, set_icon, param);
+			gdk_threads_add_idle(set_icon, param);
 			break;
 		case 'h': /* hide */
-			g_main_context_invoke(mainc, set_visible, (void *)0);
+			gdk_threads_add_idle(set_visible, (void *)0);
 			break;
 		case 's': /* show */
-			g_main_context_invoke(mainc, set_visible, (void *)1);
+			gdk_threads_add_idle(set_visible, (void *)1);
 			break;
 		case 'c': /* click */
 			if (onclick != NULL) {
@@ -180,7 +178,7 @@ int main(int argc, char **argv)
 {
 	char *start_icon = "none";
 	FILE *fifo;
-	pthread_t reader;
+	GThread *reader;
 
 	gtk_init(&argc, &argv);
 
@@ -199,8 +197,7 @@ int main(int argc, char **argv)
 	}
 
 	icon = create_tray_icon(start_icon);
-	mainc = g_main_context_default();
-	pthread_create(&reader, NULL, watch_fifo, argv[argc-1]);
+	reader = g_thread_new("watch_fifo", watch_fifo, argv[argc-1]);
 	gtk_main();
 	return 0;
 }
