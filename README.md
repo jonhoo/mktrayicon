@@ -103,7 +103,10 @@ Xlib: sequence lost (0x100c1 > 0xc3) in reply type 0x1c!
 mktrayicon: xcb_io.c:179: dequeue_pending_request: Assertion `!xcb_xlib_unknown_req_in_deq' failed.
 ```
 
-If someone has a genious way to fix this, patches are welcome.
+If someone has a genious way to fix this, patches are welcome. If you have a
+solution, you can get some Stackoverflow reputation over at [this
+question](http://stackoverflow.com/questions/18647475/threading-problems-with-gtk/18651036)
+as well.
 
 Also, it would be nice if removing the FIFO file would cause `mktrayicon` to
 exit automatically as if "q" was sent. Unfortunately, this is not entirely
