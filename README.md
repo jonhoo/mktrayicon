@@ -78,38 +78,10 @@ rm /tmp/$$.icon
 
 This is my first time using the GTK+ C library, and I've got to say it is less
 than pleasant to work with. My biggest issue has been trying to do blocking IO
-without blocking the GUI thread, as GTK seems to not like that. They've
-deprecated most of the threading stuff, and only left this
-`g_main_context_invoke` mess, which doesn't even seem to work all of the time.
+without blocking the GUI thread, as GTK seems to not like that.
 
-So, every now and again, the program will just die completely with one of the
-following messages:
+There are bound to be bugs, but the most important ones for now are
+[#1](https://github.com/Jonhoo/mktrayicon/issues/1) and
+[#2](https://github.com/Jonhoo/mktrayicon/issues/2).
 
-```
-Xlib: sequence lost (0x100c1 > 0xc3) in reply type 0x1c!
-[xcb] Unknown request in queue while dequeuing
-[xcb] Most likely this is a multi-threaded client and XInitThreads has not been called
-[xcb] Aborting, sorry about that.
-
-[xcb] Unknown sequence number while processing queue
-[xcb] Most likely this is a multi-threaded client and XInitThreads has not been called
-[xcb] Aborting, sorry about that.
-mktrayicon: xcb_io.c:274: poll_for_event: Assertion `!xcb_xlib_threads_sequence_lost' failed.
-
-Xlib: sequence lost (0x100c1 > 0xc3) in reply type 0x1c!
-[xcb] Unknown request in queue while dequeuing
-[xcb] Most likely this is a multi-threaded client and XInitThreads has not been called
-[xcb] Aborting, sorry about that.
-mktrayicon: xcb_io.c:179: dequeue_pending_request: Assertion `!xcb_xlib_unknown_req_in_deq' failed.
-```
-
-If someone has a genious way to fix this, patches are welcome. If you have a
-solution, you can get some Stackoverflow reputation over at [this
-question](http://stackoverflow.com/questions/18647475/threading-problems-with-gtk/18651036)
-as well.
-
-Also, it would be nice if removing the FIFO file would cause `mktrayicon` to
-exit automatically as if "q" was sent. Unfortunately, this is not entirely
-trivial to implement. Have a look
-[here](http://stackoverflow.com/questions/18643486/detect-deletion-of-fifo-file-with-blocking-open)
-and send a patch my way if you know how to do it.
+**Patches are very welcome!**
