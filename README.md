@@ -80,8 +80,4 @@ This is my first time using the GTK+ C library, and I've got to say it is less
 than pleasant to work with. My biggest issue has been trying to do blocking IO
 without blocking the GUI thread, as GTK seems to not like that.
 
-There are bound to be bugs, but the most important ones for now are
-[#1](https://github.com/Jonhoo/mktrayicon/issues/1) and
-[#2](https://github.com/Jonhoo/mktrayicon/issues/2).
-
 **Patches are very welcome!**

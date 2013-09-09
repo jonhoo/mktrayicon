@@ -4,6 +4,7 @@
  */
 #include <gtk/gtk.h>
 #include <glib.h>
+#include <X11/Xlib.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -180,6 +181,7 @@ int main(int argc, char **argv)
 	FILE *fifo;
 	GThread *reader;
 
+	XInitThreads(); /* see http://stackoverflow.com/a/18690540/472927 */
 	gtk_init(&argc, &argv);
 
 	if (argc == 4 && strcmp(argv[1], "-i") == 0) {
