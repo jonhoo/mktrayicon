@@ -25,19 +25,25 @@ void tray_icon_on_click(GtkStatusIcon *status_icon,
 void tray_icon_on_menu(GtkStatusIcon *status_icon, guint button, 
 		       guint activate_time, gpointer user_data)
 {
+#ifdef DEBUG
 	printf("Popup menu\n");
+#endif
 }
 
 gboolean set_tooltip(gpointer data)
 {
 	char *p = (char*)data;
 	if (*p == '\0') {
+#ifdef DEBUG
 		printf("Removing tooltip\n");
+#endif
 		gtk_status_icon_set_has_tooltip(icon, FALSE);
 		return FALSE;
 	}
 
+#ifdef DEBUG
 	printf("Setting tooltip to '%s'\n", p);
+#endif
 	gtk_status_icon_set_tooltip_text(icon, p);
 	free(data);
 	return FALSE;
@@ -46,7 +52,9 @@ gboolean set_tooltip(gpointer data)
 gboolean set_icon(gpointer data)
 {
 	char *p = (char*)data;
+#ifdef DEBUG
 	printf("Setting icon to '%s'\n", p);
+#endif
 	gtk_status_icon_set_from_icon_name(icon, p);
 	free(data);
 	return FALSE;
@@ -151,12 +159,16 @@ gpointer watch_fifo(gpointer argv)
 			}
 
 			if (*param == '\0') {
+#ifdef DEBUG
 				printf("Removing onclick handler\n");
+#endif
 				break;
 			}
 
 			onclick = param;
+#ifdef DEBUG
 			printf("Setting onclick handler to '%s'\n", onclick);
+#endif
 			break;
 		case 'm': /* menu */
 			fprintf(stderr, "Menu command not yet implemented\n");
