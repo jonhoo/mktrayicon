@@ -39,6 +39,7 @@ gboolean set_tooltip(gpointer data)
 
 	printf("Setting tooltip to '%s'\n", p);
 	gtk_status_icon_set_tooltip_text(icon, p);
+	free(data);
 	return FALSE;
 }
 
@@ -47,6 +48,7 @@ gboolean set_icon(gpointer data)
 	char *p = (char*)data;
 	printf("Setting icon to '%s'\n", p);
 	gtk_status_icon_set_from_icon_name(icon, p);
+	free(data);
 	return FALSE;
 }
 
@@ -113,15 +115,20 @@ gpointer watch_fifo(gpointer argv)
 		buf[len-1] = '\0';
 		len -= 1;
 
-		/* only read from this if you *know* there are more arguments */
-		param = buf + 2;
+		/* we have to malloc this on every call, because the memory is
+		 * reused and the _idle functions are called asynchronously */
 		if (len < 3) {
+			param = malloc(1*sizeof(char));
 			*param = '\0';
+		} else {
+			param = malloc((len-2+1)*sizeof(char));
+			strncpy(param, buf+2, len-2+1);
 		}
 
 		switch (*buf) {
 		case 'q':
 			gdk_threads_add_idle(do_quit, param);
+			free(param);
 			break;
 		case 't': /* tooltip */
 			gdk_threads_add_idle(set_tooltip, param);
@@ -131,9 +138,11 @@ gpointer watch_fifo(gpointer argv)
 			break;
 		case 'h': /* hide */
 			gdk_threads_add_idle(set_visible, (void *)0);
+			free(param);
 			break;
 		case 's': /* show */
 			gdk_threads_add_idle(set_visible, (void *)1);
+			free(param);
 			break;
 		case 'c': /* click */
 			if (onclick != NULL) {
@@ -146,15 +155,16 @@ gpointer watch_fifo(gpointer argv)
 				break;
 			}
 
-			onclick = malloc((len-2+1) * sizeof(char));
-			strncpy(onclick, param, len-2+1);
+			onclick = param;
 			printf("Setting onclick handler to '%s'\n", onclick);
 			break;
 		case 'm': /* menu */
 			fprintf(stderr, "Menu command not yet implemented\n");
+			free(param);
 			break;
 		default:
 			fprintf(stderr, "Unknown command: '%c'\n", *buf);
+			free(param);
 		}
 
 		gdk_flush();
