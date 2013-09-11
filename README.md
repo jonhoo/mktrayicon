@@ -36,7 +36,7 @@ instantly make tray icons out of them (3G signal strength for example).
 
 ## Example run
 
-This example is also in `example.sh` so you can try running it.
+This example is also in `examples/test.sh` so you can try running it.
 
 ```bash
 #!/bin/bash
