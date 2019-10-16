@@ -13,7 +13,7 @@ command. Each command should be terminated by a newline. The following commands
 are supported:
 
   - `q`: Terminate `mktrayicon` and remove the tray icon
-  - `i <icon>`: Set the graphic to use for the tray icon (see `/usr/share/icons`)
+  - `i <icon>`: Set the graphic to use for the tray icon; it can be a stock icon name (see `/usr/share/icons`) or path to a custom icon
   - `t <text>`: Set the text to display in the icon tooltip
   - `t`: Remove the icon tooltip
   - `c <cmnd>`: Set the command to be execute when the user clicks the icon (`cmnd` is passed to `/bin/sh -c`)
@@ -22,7 +22,7 @@ are supported:
   - `s`: Show the tray icon
 
 By default, the `none` tooltip icon is used. To change this, pass `-i
-<icon_name>` when running `mktrayicon`.
+<stock_icon_name>` or `-i <path_to_custom_icon>` when running `mktrayicon`.
 
 Note that any script communicating with `mktrayicon` **must**, for the time
 being, send `q` when they are done. Just removing the FIFO file will **not**
