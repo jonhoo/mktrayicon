@@ -55,7 +55,14 @@ gboolean set_icon(gpointer data)
 #ifdef DEBUG
 	printf("Setting icon to '%s'\n", p);
 #endif
-	gtk_status_icon_set_from_icon_name(icon, p);
+	if (strchr(p, '/'))
+	{
+		gtk_status_icon_set_from_file(icon, p);
+	}
+	else
+	{
+		gtk_status_icon_set_from_icon_name(icon, p);
+	}
 	free(data);
 	return FALSE;
 }
@@ -189,7 +196,14 @@ static GtkStatusIcon *create_tray_icon(char *start_icon)
 {
 	GtkStatusIcon *tray_icon;
 
-	tray_icon = gtk_status_icon_new_from_icon_name(start_icon);
+	if (strchr(start_icon, '/'))
+	{
+		tray_icon = gtk_status_icon_new_from_file(start_icon);
+	}
+	else
+	{
+		tray_icon = gtk_status_icon_new_from_icon_name(start_icon);
+	}
 	g_signal_connect(G_OBJECT(tray_icon), "activate", G_CALLBACK(tray_icon_on_click), NULL);
 	g_signal_connect(G_OBJECT(tray_icon), "popup-menu", G_CALLBACK(tray_icon_on_menu), NULL);
 	gtk_status_icon_set_visible(tray_icon, TRUE);
