@@ -13,6 +13,7 @@
 
 GtkStatusIcon *icon;
 char *onclick = NULL;
+char *icon_type; /* stock (name only) vs. custom (full path) */
 
 void tray_icon_on_click(GtkStatusIcon *status_icon, 
 			gpointer user_data)
@@ -55,7 +56,14 @@ gboolean set_icon(gpointer data)
 #ifdef DEBUG
 	printf("Setting icon to '%s'\n", p);
 #endif
-	gtk_status_icon_set_from_icon_name(icon, p);
+	if (strcmp(icon_type, "custom") == 0)
+	{
+		gtk_status_icon_set_from_file(icon, p);
+	}
+	else
+	{
+		gtk_status_icon_set_from_icon_name(icon, p);
+	}
 	free(data);
 	return FALSE;
 }
@@ -142,6 +150,14 @@ gpointer watch_fifo(gpointer argv)
 			gdk_threads_add_idle(set_tooltip, param);
 			break;
 		case 'i': /* icon */
+			if (strchr(param, '/'))
+			{
+				icon_type="custom";
+			}
+			else
+			{
+				icon_type="stock";
+			}
 			gdk_threads_add_idle(set_icon, param);
 			break;
 		case 'h': /* hide */
@@ -189,7 +205,14 @@ static GtkStatusIcon *create_tray_icon(char *start_icon)
 {
 	GtkStatusIcon *tray_icon;
 
-	tray_icon = gtk_status_icon_new_from_icon_name(start_icon);
+	if (strchr(start_icon, '/'))
+	{
+		tray_icon = gtk_status_icon_new_from_file(start_icon);
+	}
+	else
+	{
+		tray_icon = gtk_status_icon_new_from_icon_name(start_icon);
+	}
 	g_signal_connect(G_OBJECT(tray_icon), "activate", G_CALLBACK(tray_icon_on_click), NULL);
 	g_signal_connect(G_OBJECT(tray_icon), "popup-menu", G_CALLBACK(tray_icon_on_menu), NULL);
 	gtk_status_icon_set_visible(tray_icon, TRUE);
