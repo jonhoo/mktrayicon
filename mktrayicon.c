@@ -13,7 +13,6 @@
 
 GtkStatusIcon *icon;
 char *onclick = NULL;
-char *icon_type; /* stock (name only) vs. custom (full path) */
 
 void tray_icon_on_click(GtkStatusIcon *status_icon, 
 			gpointer user_data)
@@ -56,7 +55,7 @@ gboolean set_icon(gpointer data)
 #ifdef DEBUG
 	printf("Setting icon to '%s'\n", p);
 #endif
-	if (strcmp(icon_type, "custom") == 0)
+	if (strchr(p, '/'))
 	{
 		gtk_status_icon_set_from_file(icon, p);
 	}
@@ -150,14 +149,6 @@ gpointer watch_fifo(gpointer argv)
 			gdk_threads_add_idle(set_tooltip, param);
 			break;
 		case 'i': /* icon */
-			if (strchr(param, '/'))
-			{
-				icon_type="custom";
-			}
-			else
-			{
-				icon_type="stock";
-			}
 			gdk_threads_add_idle(set_icon, param);
 			break;
 		case 'h': /* hide */
