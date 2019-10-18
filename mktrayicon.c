@@ -212,6 +212,7 @@ int main(int argc, char **argv)
 	char *start_icon = "none";
 	FILE *fifo;
 	GThread *reader;
+
 	XInitThreads(); /* see http://stackoverflow.com/a/18690540/472927 */
 	gtk_init(&argc, &argv);
 
