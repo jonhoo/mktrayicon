@@ -17,8 +17,7 @@ $ mktrayicon -i <ICON> -t <TOOLTIP> <FIFO> &
   or
 $ mktrayicon -i <ICON> &
   or
-$ mktrayicon -i <ICON> -t &
-
+$ mktrayicon -i <ICON> -t <TOOLTIP> &
 ```
 
 If a FIFO is not provided, mktrayicon will run until killed (e.g., `pkill -f 
