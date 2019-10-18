@@ -4,8 +4,7 @@
 tray icons without having to deal with a graphical toolkit like GTK.
 
 `mktrayicon` can be used two ways: To create an icon that is controlled by a named pipe
-or, more simply, to create a non-interactive icon using the given tooltip (use an empty
-string if you don't want a tooltip).
+or, more simply, to create a non-interactive icon using the specified tooltip string (which can be an empty string). 
 
 In all, there are three ways of calling mktrayicon:
 ```
