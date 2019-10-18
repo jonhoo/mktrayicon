@@ -17,7 +17,7 @@ $ mktrayicon -i <ICON> -t <TOOLTIP> &
 ```
 
 If you are using a named pipe (FIFO) to control the icon, *the the pipe should 
-already be created before you call `mktrayicon`*. If you created a non-interactive icon and later want the icon to go away, you can use a command such as `pkill 'mktrayicon.*<ICON>'`.
+already be created before you call `mktrayicon`*. If you created a non-interactive icon and later want the icon to go away, you can use a command such as `pkill -f 'mktrayicon.*<ICON>'`.
 
 Every line written to the pipe should contain a single letter specifying what
 operation to perform, optionally followed by a space and a parameter to the
