@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 GtkStatusIcon *icon;
 char *onclick = NULL;
@@ -210,6 +211,8 @@ static GtkStatusIcon *create_tray_icon(char *start_icon)
 int main(int argc, char **argv)
 {
 	char *start_icon = "none";
+	char *tooltip = NULL;
+	char *pipe = NULL;
 	FILE *fifo;
 	GThread *reader;
 
@@ -217,7 +220,7 @@ int main(int argc, char **argv)
 	gtk_init(&argc, &argv);
 
 	if (argc == 1) {
-		printf("Usage: %s [-i ICON] [-t TOOLTIP] [FIFO]\n", *argv);
+		printf("Usage: %s [-i ICON] [-t TOOLTIP] [-p FIFO]\n", *argv);
 		printf("Create a system tray icon as specified\n");
 		printf("\n");
 		printf("  -i ICON\tUse the specified ICON when initializing\n");
@@ -228,23 +231,33 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	int args = 1;
-
-	if (strcmp(argv[1], "-i") == 0) {
-		start_icon = argv[2];
-		args += 2;
-	}
-
-	if (argc > 3 && strcmp(argv[3], "-t") == 0) {
-		gtk_status_icon_set_tooltip_text(icon, argv[4]);
-		args += 2;
-	}
-
-	if (args < argc) { /* last argument is a pipe */
-		reader = g_thread_new("watch_fifo", watch_fifo, argv[argc-1]);
-	}
+	int c;
+	while ((c = getopt (argc, argv, "i:t:p:")) != -1)
+ 		switch (c)
+		{
+			case 'i':
+				start_icon = optarg;
+				break;
+			case 't':
+				tooltip = optarg;
+				break;
+			case 'p':
+				pipe = optarg;
+				break;
+			case '?':
+				fprintf(stderr, "Unknown option: %c\n", optopt);
+				return 1;
+		}
 
 	icon = create_tray_icon(start_icon);
+
+	if (tooltip) {
+		gtk_status_icon_set_tooltip_text(icon, tooltip);
+	}
+
+	if (pipe) {
+		reader = g_thread_new("watch_fifo", watch_fifo, pipe);
+	}
 
 	gtk_main();
 	return 0;
