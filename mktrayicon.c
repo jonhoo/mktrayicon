@@ -235,9 +235,7 @@ int main(int argc, char **argv)
 		args += 2;
 	}
 
-	icon = create_tray_icon(start_icon);
-
-	if (strcmp(argv[3], "-t") == 0) {
+	if (argc > 3 && strcmp(argv[3], "-t") == 0) {
 		gtk_status_icon_set_tooltip_text(icon, argv[4]);
 		args += 2;
 	}
@@ -245,6 +243,8 @@ int main(int argc, char **argv)
 	if (args < argc) { /* last argument is a pipe */
 		reader = g_thread_new("watch_fifo", watch_fifo, argv[argc-1]);
 	}
+
+	icon = create_tray_icon(start_icon);
 
 	gtk_main();
 	return 0;
