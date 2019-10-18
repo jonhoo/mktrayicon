@@ -3,9 +3,21 @@
 `mktrayicon` is a simple proxy program that lets you create and modify system
 tray icons without having to deal with a graphical toolkit like GTK.
 
-`mktrayicon` expects to be given a name pipe (FIFO) file path when it is
-started, and you control your status icon by writing to this named pipe. *Note
-that the pipe should already be created before you call `mktrayicon`*.
+`mktrayicon` can be used two ways: To create an icon that is controlled by a named pipe
+or, more simply, to create a non-interactive icon using the given tooltip (use an empty
+string if you don't want a tooltip).
+
+In all, there are three ways of calling mktrayicon:
+```
+$ mktrayicon <FIFO> &
+  or
+$ mktrayicon -i <ICON> <FIFO> &
+  or
+$ mktrayicon -i <ICON> -t <TOOLTIP> &
+```
+
+If you are using a named pipe (FIFO) to control the icon, *the the pipe should 
+already be created before you call `mktrayicon`*.
 
 Every line written to the pipe should contain a single letter specifying what
 operation to perform, optionally followed by a space and a parameter to the
@@ -24,7 +36,7 @@ are supported:
 By default, the `none` tooltip icon is used. To change this, pass `-i
 <stock_icon_name>` or `-i <path_to_custom_icon>` when running `mktrayicon`.
 
-Note that any script communicating with `mktrayicon` **must**, for the time
+Note that any script communicating with `mktrayicon` via the pipe **must**, for the time
 being, send `q` when they are done. Just removing the FIFO file will **not**
 cause the tray icon to be removed.
 
