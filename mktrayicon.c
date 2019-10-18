@@ -222,6 +222,7 @@ int main(int argc, char **argv)
 		printf("\n");
 		printf("  -i ICON\tUse the specified ICON when initializing\n");
 		printf("  -t TOOLTIP\tUse the specified TOOLTIP when initializing\n");
+		printf("  if a FIFO is not provided, mktrayicon will run until killed\n");
 		printf("\n");
 		printf("Report bugs at https://github.com/jonhoo/mktrayicon\n");
 		return 0;
@@ -237,9 +238,13 @@ int main(int argc, char **argv)
 		gtk_status_icon_set_tooltip_text(icon, argv[4]);
 	}
 
-	if (/* test to see if last arg is a pipe */) {
+	/* test if last argument is a pipe */
+	char *command = malloc(1024*sizeof(char));
+	sprintf(command, "test -p %s", argv[argc-1]);
+	if (system(command) == 0) { /* last argument is a pipe */
 		reader = g_thread_new("watch_fifo", watch_fifo, argv[argc-1]);
 	}
+	free(command);
 
 	gtk_main();
 	return 0;
