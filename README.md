@@ -3,8 +3,9 @@
 `mktrayicon` is a simple proxy program that lets you create and modify system
 tray icons without having to deal with a graphical toolkit like GTK.
 
-`mktrayicon` can be used two ways: To create an icon that is controlled by a named pipe
-or, more simply, to create a non-interactive icon using the specified tooltip string (which can be an empty string if you don't need a tooltip). 
+`mktrayicon` can be used two ways: To create an icon that is controlled by a 
+named pipe or, more simply, to create a non-interactive icon using the specified 
+tooltip string (which can be an empty string if you don't need a tooltip). 
 
 In all, there are three ways of calling mktrayicon:
 ```
@@ -16,7 +17,9 @@ $ mktrayicon -i <ICON> -t <TOOLTIP> &
 ```
 
 If you are using a named pipe (FIFO) to control the icon, *the the pipe should 
-already be created before you call `mktrayicon`*. If you create a non-interactive icon and later want the icon to go away, you can get rid of the icon using a command such as `pkill -f 'mktrayicon.*<ICON>'`.
+already be created before you call `mktrayicon`*. If you create a non-
+interactive icon and later want the icon to go away, you can get rid of the icon
+using a command such as `pkill -f 'mktrayicon.*<ICON>'`.
 
 Every line written to the pipe should contain a single letter specifying what
 operation to perform, optionally followed by a space and a parameter to the
@@ -24,10 +27,12 @@ command. Each command should be terminated by a newline. The following commands
 are supported:
 
   - `q`: Terminate `mktrayicon` and remove the tray icon
-  - `i <icon>`: Set the graphic to use for the tray icon; it can be a stock icon name (see `/usr/share/icons`) or path to a custom icon
+  - `i <icon>`: Set the graphic to use for the tray icon; it can be a stock icon
+		name (see `/usr/share/icons`) or path to a custom icon
   - `t <text>`: Set the text to display in the icon tooltip
   - `t`: Remove the icon tooltip
-  - `c <cmnd>`: Set the command to be execute when the user clicks the icon (`cmnd` is passed to `/bin/sh -c`)
+  - `c <cmnd>`: Set the command to be execute when the user clicks the icon 
+		(`cmnd` is passed to `/bin/sh -c`)
   - `c`: Remove the click handler
   - `h`: Hide the tray icon
   - `s`: Show the tray icon
@@ -35,9 +40,9 @@ are supported:
 By default, the `none` tooltip icon is used. To change this, pass `-i
 <stock_icon_name>` or `-i <path_to_custom_icon>` when running `mktrayicon`.
 
-Note that any script communicating with `mktrayicon` via the pipe **must**, for the time
-being, send `q` when they are done. Just removing the FIFO file will **not**
-cause the tray icon to be removed.
+Note that any script communicating with `mktrayicon` via the pipe **must**, for 
+the time being, send `q` when they are done. Just removing the FIFO file will 
+**not** cause the tray icon to be removed.
 
 ## Why?
 
