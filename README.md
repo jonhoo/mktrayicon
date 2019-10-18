@@ -6,6 +6,21 @@ tray icons without having to deal with a graphical toolkit like GTK.
 `mktrayicon` can be used two ways: To create an icon that is controlled by a 
 named pipe or, more simply, to create a non-interactive icon.
 
+Calls to mktrayicon are flexible. All of these work:
+
+```
+$ mktrayicon -p <FIFO> &
+  or
+$ mktrayicon -i <ICON> -p <FIFO> &
+  or
+$ mktrayicon -i <ICON> -t <TOOLTIP> -p <FIFO> &
+  or
+$ mktrayicon -i <ICON> &
+  or
+$ mktrayicon -i <ICON> -t <TOOLTIP> &
+  etc.
+```
+
 If a FIFO is not provided, mktrayicon will run until killed (e.g., `pkill -f 
 'mktrayicon.*<ICON>'`). If you are using a named pipe (FIFO) to control the 
 icon, *the the pipe should already be created before you call `mktrayicon`*. 
