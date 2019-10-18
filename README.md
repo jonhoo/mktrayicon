@@ -4,21 +4,7 @@
 tray icons without having to deal with a graphical toolkit like GTK.
 
 `mktrayicon` can be used two ways: To create an icon that is controlled by a 
-named pipe or, more simply, to create a non-interactive icon using the specified 
-tooltip string (which can be an empty string if you don't need a tooltip). 
-
-Calls to mktrayicon are flexible. All of these work:
-```
-$ mktrayicon <FIFO> &
-  or
-$ mktrayicon -i <ICON> <FIFO> &
-  or
-$ mktrayicon -i <ICON> -t <TOOLTIP> <FIFO> &
-  or
-$ mktrayicon -i <ICON> &
-  or
-$ mktrayicon -i <ICON> -t <TOOLTIP> &
-```
+named pipe or, more simply, to create a non-interactive icon.
 
 If a FIFO is not provided, mktrayicon will run until killed (e.g., `pkill -f 
 'mktrayicon.*<ICON>'`). If you are using a named pipe (FIFO) to control the 
@@ -62,7 +48,7 @@ This example is also in `examples/test.sh` so you can try running it.
 
 # Set up tray icon
 mkfifo /tmp/$$.icon
-./mktrayicon /tmp/$$.icon &
+./mktrayicon -p /tmp/$$.icon &
 
 # Manipulate tray icon
 
