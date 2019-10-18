@@ -217,7 +217,7 @@ int main(int argc, char **argv)
 	gtk_init(&argc, &argv);
 
 	if (argc == 1) {
-		printf("Usage: %s [-i ICON] FIFO --or-- %s -i ICON -t TOOLTIP\n", *argv, *argv);
+		printf("Usage: %s [-i ICON] [-t TOOLTIP] [FIFO]\n", *argv);
 		printf("Create a system tray icon as specified\n");
 		printf("\n");
 		printf("  -i ICON\tUse the specified ICON when initializing\n");
@@ -233,14 +233,14 @@ int main(int argc, char **argv)
 
 	icon = create_tray_icon(start_icon);
 
-	if (strcmp(argv[3], "-t") == 0) { /* icon is non-interactive, use given tooltip */
+	if (strcmp(argv[3], "-t") == 0) {
 		gtk_status_icon_set_tooltip_text(icon, argv[4]);
 	}
-	else { /* icon is interactive, listen to the specified named pipe */
+
+	if (/* test to see if last arg is a pipe */) {
 		reader = g_thread_new("watch_fifo", watch_fifo, argv[argc-1]);
 	}
 
 	gtk_main();
 	return 0;
 }
-
