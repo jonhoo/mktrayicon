@@ -55,12 +55,10 @@ gboolean set_icon(gpointer data)
 #ifdef DEBUG
 	printf("Setting icon to '%s'\n", p);
 #endif
-	if (strchr(p, '/'))
-	{
+	if (strchr(p, '/')) {
 		gtk_status_icon_set_from_file(icon, p);
 	}
-	else
-	{
+	else {
 		gtk_status_icon_set_from_icon_name(icon, p);
 	}
 	free(data);
@@ -196,12 +194,10 @@ static GtkStatusIcon *create_tray_icon(char *start_icon)
 {
 	GtkStatusIcon *tray_icon;
 
-	if (strchr(start_icon, '/'))
-	{
+	if (strchr(start_icon, '/')) {
 		tray_icon = gtk_status_icon_new_from_file(start_icon);
 	}
-	else
-	{
+	else {
 		tray_icon = gtk_status_icon_new_from_icon_name(start_icon);
 	}
 	g_signal_connect(G_OBJECT(tray_icon), "activate", G_CALLBACK(tray_icon_on_click), NULL);
@@ -216,26 +212,34 @@ int main(int argc, char **argv)
 	char *start_icon = "none";
 	FILE *fifo;
 	GThread *reader;
-
 	XInitThreads(); /* see http://stackoverflow.com/a/18690540/472927 */
 	gtk_init(&argc, &argv);
 
-	if (argc == 4 && strcmp(argv[1], "-i") == 0) {
-		start_icon = argv[2];
-	}
-
 	if (argc == 1) {
-		printf("Usage: %s [-i ICON] FIFO\n", *argv);
-		printf("Listen to FIFO for system tray icon specifications\n");
+		printf("Usage: %s [-i ICON] FIFO --or-- %s -i ICON -t TOOLTIP\n", *argv, *argv);
+		printf("Create a system tray icon as specified\n");
 		printf("\n");
 		printf("  -i ICON\tUse the specified ICON when initializing\n");
+		printf("  -t TOOLTIP\tUse the specified TOOLTIP when initializing\n");
 		printf("\n");
 		printf("Report bugs at https://github.com/jonhoo/mktrayicon\n");
 		return 0;
 	}
 
+	if (strcmp(argv[1], "-i") == 0) {
+		start_icon = argv[2];
+	}
+
 	icon = create_tray_icon(start_icon);
-	reader = g_thread_new("watch_fifo", watch_fifo, argv[argc-1]);
+
+	if (strcmp(argv[3], "-t") == 0) { /* icon is non-interactive, use given tooltip */
+		gtk_status_icon_set_tooltip_text(icon, argv[4]);
+	}
+	else { /* icon is interactive, listen to the specified named pipe */
+		reader = g_thread_new("watch_fifo", watch_fifo, argv[argc-1]);
+	}
+
 	gtk_main();
 	return 0;
 }
+
