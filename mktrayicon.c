@@ -220,7 +220,7 @@ int main(int argc, char **argv)
 	gtk_init(&argc, &argv);
 
 	if (argc == 1) {
-		printf("Usage: %s [-i ICON] [-t TOOLTIP] [-p FIFO]\n", *argv);
+		printf("Usage: %s [-i ICON] [-t TOOLTIP] [FIFO]\n", *argv);
 		printf("Create a system tray icon as specified\n");
 		printf("\n");
 		printf("  -i ICON\tUse the specified ICON when initializing\n");
@@ -232,7 +232,7 @@ int main(int argc, char **argv)
 	}
 
 	int c;
-	while ((c = getopt (argc, argv, "i:t:p:")) != -1)
+	while ((c = getopt (argc, argv, "i:t:")) != -1)
  		switch (c)
 		{
 			case 'i':
@@ -241,13 +241,14 @@ int main(int argc, char **argv)
 			case 't':
 				tooltip = optarg;
 				break;
-			case 'p':
-				pipe = optarg;
-				break;
 			case '?':
 				fprintf(stderr, "Unknown option: %c\n", optopt);
 				return 1;
 		}
+
+	int index;
+  	for (index = optind; index < argc; index++)
+		pipe = argv[index];
 
 	icon = create_tray_icon(start_icon);
 
