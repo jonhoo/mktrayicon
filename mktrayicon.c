@@ -228,23 +228,23 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
+	int args = 1;
+
 	if (strcmp(argv[1], "-i") == 0) {
 		start_icon = argv[2];
+		args += 2;
 	}
 
 	icon = create_tray_icon(start_icon);
 
 	if (strcmp(argv[3], "-t") == 0) {
 		gtk_status_icon_set_tooltip_text(icon, argv[4]);
+		args += 2;
 	}
 
-	/* test if last argument is a pipe */
-	char *command = malloc(1024*sizeof(char));
-	sprintf(command, "test -p %s 2>/dev/null", argv[argc-1]);
-	if (system(command) == 0) { /* last argument is a pipe */
+	if (args < argc) { /* last argument is a pipe */
 		reader = g_thread_new("watch_fifo", watch_fifo, argv[argc-1]);
 	}
-	free(command);
 
 	gtk_main();
 	return 0;
