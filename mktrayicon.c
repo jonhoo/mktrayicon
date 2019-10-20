@@ -254,7 +254,7 @@ int main(int argc, char **argv)
 
 	/* optind holds the index of the next argument to be parsed */
 	/* getopt moved positional arguments (if there were any) to the end of the argv array, without parsing them */
-	/* so if there were only non-positional arguments, all arguments have been barsed and optind will be equal to argc */
+	/* so if there were only non-positional arguments, all arguments have been parsed and optind will be equal to argc */
 	if (optind < argc) {
 		pipe = argv[optind];
 		reader = g_thread_new("watch_fifo", watch_fifo, pipe);
