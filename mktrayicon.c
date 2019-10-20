@@ -251,9 +251,10 @@ int main(int argc, char **argv)
 	if (tooltip) {
 		gtk_status_icon_set_tooltip_text(icon, tooltip);
 	}
-	
-	/* getopt moves positional arguments (if there are any) to the end of the argv array */
-	/* optind holds the index of next argument to be parsed (so it will be equal to argc if all arguments have been parsed) */
+
+	/* optind holds the index of the next argument to be parsed */
+	/* getopt moved positional arguments (if there were any) to the end of the argv array, without parsing them */
+	/* so if there were only non-positional arguments, all arguments have been barsed and optind will be equal to argc */
 	if (optind < argc) {
 		pipe = argv[optind];
 		reader = g_thread_new("watch_fifo", watch_fifo, pipe);
