@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 GtkStatusIcon *icon;
 char *onclick = NULL;
@@ -55,12 +56,10 @@ gboolean set_icon(gpointer data)
 #ifdef DEBUG
 	printf("Setting icon to '%s'\n", p);
 #endif
-	if (strchr(p, '/'))
-	{
+	if (strchr(p, '/')) {
 		gtk_status_icon_set_from_file(icon, p);
 	}
-	else
-	{
+	else {
 		gtk_status_icon_set_from_icon_name(icon, p);
 	}
 	free(data);
@@ -196,12 +195,10 @@ static GtkStatusIcon *create_tray_icon(char *start_icon)
 {
 	GtkStatusIcon *tray_icon;
 
-	if (strchr(start_icon, '/'))
-	{
+	if (strchr(start_icon, '/')) {
 		tray_icon = gtk_status_icon_new_from_file(start_icon);
 	}
-	else
-	{
+	else {
 		tray_icon = gtk_status_icon_new_from_icon_name(start_icon);
 	}
 	g_signal_connect(G_OBJECT(tray_icon), "activate", G_CALLBACK(tray_icon_on_click), NULL);
@@ -214,28 +211,55 @@ static GtkStatusIcon *create_tray_icon(char *start_icon)
 int main(int argc, char **argv)
 {
 	char *start_icon = "none";
+	char *tooltip = NULL;
+	char *pipe = NULL;
 	FILE *fifo;
 	GThread *reader;
 
 	XInitThreads(); /* see http://stackoverflow.com/a/18690540/472927 */
 	gtk_init(&argc, &argv);
 
-	if (argc == 4 && strcmp(argv[1], "-i") == 0) {
-		start_icon = argv[2];
-	}
-
 	if (argc == 1) {
-		printf("Usage: %s [-i ICON] FIFO\n", *argv);
-		printf("Listen to FIFO for system tray icon specifications\n");
+		printf("Usage: %s [-i ICON] [-t TOOLTIP] [FIFO]\n", *argv);
+		printf("Create a system tray icon as specified\n");
 		printf("\n");
 		printf("  -i ICON\tUse the specified ICON when initializing\n");
+		printf("  -t TOOLTIP\tUse the specified TOOLTIP when initializing\n");
 		printf("\n");
+		printf("If a FIFO is not provided, mktrayicon will run until killed\n");
 		printf("Report bugs at https://github.com/jonhoo/mktrayicon\n");
 		return 0;
 	}
 
+	int c;
+	while ((c = getopt (argc, argv, "i:t:")) != -1)
+ 		switch (c)
+		{
+			case 'i':
+				start_icon = optarg;
+				break;
+			case 't':
+				tooltip = optarg;
+				break;
+			case '?':
+				fprintf(stderr, "Unknown option: %c\n", optopt);
+				return 1;
+		}
+
 	icon = create_tray_icon(start_icon);
-	reader = g_thread_new("watch_fifo", watch_fifo, argv[argc-1]);
+
+	if (tooltip) {
+		gtk_status_icon_set_tooltip_text(icon, tooltip);
+	}
+
+	/* optind holds the index of the next argument to be parsed */
+	/* getopt moved positional arguments (if there were any) to the end of the argv array, without parsing them */
+	/* so if there were only non-positional arguments, all arguments have been parsed and optind will be equal to argc */
+	if (optind < argc) {
+		pipe = argv[optind];
+		reader = g_thread_new("watch_fifo", watch_fifo, pipe);
+	}
+
 	gtk_main();
 	return 0;
 }

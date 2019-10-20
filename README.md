@@ -3,9 +3,12 @@
 `mktrayicon` is a simple proxy program that lets you create and modify system
 tray icons without having to deal with a graphical toolkit like GTK.
 
-`mktrayicon` expects to be given a name pipe (FIFO) file path when it is
-started, and you control your status icon by writing to this named pipe. *Note
-that the pipe should already be created before you call `mktrayicon`*.
+`mktrayicon` can be used two ways: To create an icon that is controlled by a 
+named pipe or, more simply, to create a non-interactive icon.
+
+If a FIFO is not provided, mktrayicon will run until killed (e.g., `pkill -f 
+'mktrayicon.*<ICON>'`). If you are using a named pipe (FIFO) to control the 
+icon, *the pipe should already be created before you call `mktrayicon`*. 
 
 Every line written to the pipe should contain a single letter specifying what
 operation to perform, optionally followed by a space and a parameter to the
@@ -13,10 +16,12 @@ command. Each command should be terminated by a newline. The following commands
 are supported:
 
   - `q`: Terminate `mktrayicon` and remove the tray icon
-  - `i <icon>`: Set the graphic to use for the tray icon; it can be a stock icon name (see `/usr/share/icons`) or path to a custom icon
+  - `i <icon>`: Set the graphic to use for the tray icon; it can be a stock icon
+		name (see `/usr/share/icons`) or path to a custom icon
   - `t <text>`: Set the text to display in the icon tooltip
   - `t`: Remove the icon tooltip
-  - `c <cmnd>`: Set the command to be execute when the user clicks the icon (`cmnd` is passed to `/bin/sh -c`)
+  - `c <cmnd>`: Set the command to be execute when the user clicks the icon 
+		(`cmnd` is passed to `/bin/sh -c`)
   - `c`: Remove the click handler
   - `h`: Hide the tray icon
   - `s`: Show the tray icon
@@ -24,9 +29,9 @@ are supported:
 By default, the `none` tooltip icon is used. To change this, pass `-i
 <stock_icon_name>` or `-i <path_to_custom_icon>` when running `mktrayicon`.
 
-Note that any script communicating with `mktrayicon` **must**, for the time
-being, send `q` when they are done. Just removing the FIFO file will **not**
-cause the tray icon to be removed.
+Note that any script communicating with `mktrayicon` via the pipe **must**, for 
+the time being, send `q` when they are done. Just removing the FIFO file will 
+**not** cause the tray icon to be removed.
 
 ## Why?
 
