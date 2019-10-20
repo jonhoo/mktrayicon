@@ -8,7 +8,8 @@ named pipe or, more simply, to create a non-interactive icon.
 
 If a FIFO is not provided, mktrayicon will run until killed (e.g., `pkill -f 
 'mktrayicon.*<ICON>'`). If you are using a named pipe (FIFO) to control the 
-icon, *the pipe should already be created before you call `mktrayicon`*. 
+icon, *the pipe should already be created before you call `mktrayicon` and
+should be the last argument provided*. 
 
 Every line written to the pipe should contain a single letter specifying what
 operation to perform, optionally followed by a space and a parameter to the
