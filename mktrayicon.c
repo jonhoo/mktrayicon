@@ -226,6 +226,7 @@ int main(int argc, char **argv)
 		printf("  -i ICON\tUse the specified ICON when initializing\n");
 		printf("  -t TOOLTIP\tUse the specified TOOLTIP when initializing\n");
 		printf("\n");
+		printf("If a FIFO is provided, it should be the last argument\n");
 		printf("If a FIFO is not provided, mktrayicon will run until killed\n");
 		printf("Report bugs at https://github.com/jonhoo/mktrayicon\n");
 		return 0;
@@ -246,17 +247,14 @@ int main(int argc, char **argv)
 				return 1;
 		}
 
-	int index;
-  	for (index = optind; index < argc; index++)
-		pipe = argv[index]; /* this assigns the non-option argument (if one exists) to pipe */
-
 	icon = create_tray_icon(start_icon);
 
 	if (tooltip) {
 		gtk_status_icon_set_tooltip_text(icon, tooltip);
 	}
 
-	if (pipe) {
+	if (optind < argc) {
+		pipe = argv[argc - 1];
 		reader = g_thread_new("watch_fifo", watch_fifo, pipe);
 	}
 
