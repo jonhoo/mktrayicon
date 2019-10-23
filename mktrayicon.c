@@ -15,6 +15,55 @@
 GtkStatusIcon *icon;
 char *onclick = NULL;
 
+char *unstringize_newlines(char *orig_str) /* convert "\n" string (2 characters) to '\n' (1 character); also "\t" to '\t' */
+{
+	int length;
+	length = strlen(orig_str);
+	char *new_str = malloc((length+1)*sizeof(char)); /* +1 so that there's space for '\0' */
+	int i = 0; /* index of orig_str */
+	int j = 0; /* index of new_str */
+	char current_char, prior_char;
+
+	while (1)
+	{
+		current_char = orig_str[i];
+
+		if (current_char == '\0') /* finish copying */
+		{
+			new_str[j] = orig_str[i];
+			break;
+		}
+
+		if (current_char == '\\') /* copy nothing */
+			i++;
+
+		else /* current_char is not backslash */
+		{
+			if (prior_char != '\\')
+				new_str[j] = orig_str[i];
+			else /* prior_char is backslash */
+			{
+				if (current_char == 'n')
+					new_str[j] = '\n';
+				else if (current_char == 't')
+					new_str[j] = '\t';
+				else
+				{
+					new_str[j] = '\\';
+					j++;
+					new_str[j] = orig_str[i];
+				}
+			}
+		i++;
+		j++;
+		}
+
+	prior_char = current_char;
+	}
+
+	return new_str;
+}
+
 void tray_icon_on_click(GtkStatusIcon *status_icon, 
 			gpointer user_data)
 {
@@ -45,6 +94,7 @@ gboolean set_tooltip(gpointer data)
 #ifdef DEBUG
 	printf("Setting tooltip to '%s'\n", p);
 #endif
+	p = unstringize_newlines(p);
 	gtk_status_icon_set_tooltip_text(icon, p);
 	free(data);
 	return FALSE;
@@ -213,7 +263,6 @@ int main(int argc, char **argv)
 	char *start_icon = "none";
 	char *tooltip = NULL;
 	char *pipe = NULL;
-	FILE *fifo;
 	GThread *reader;
 
 	XInitThreads(); /* see http://stackoverflow.com/a/18690540/472927 */
@@ -249,12 +298,13 @@ int main(int argc, char **argv)
 	icon = create_tray_icon(start_icon);
 
 	if (tooltip) {
+		tooltip = unstringize_newlines(tooltip);
 		gtk_status_icon_set_tooltip_text(icon, tooltip);
 	}
 
-	/* optind holds the index of the next argument to be parsed */
-	/* getopt moved positional arguments (if there were any) to the end of the argv array, without parsing them */
-	/* so if there were only non-positional arguments, all arguments have been parsed and optind will be equal to argc */
+	/* optind holds the index of the next argument to be parsed
+	 * getopt moved positional arguments (if there were any) to the end of the argv array, without parsing them
+	 * so if there were only non-positional arguments, all arguments have been parsed and optind will be equal to argc */
 	if (optind < argc) {
 		pipe = argv[optind];
 		reader = g_thread_new("watch_fifo", watch_fifo, pipe);
