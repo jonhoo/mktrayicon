@@ -22,7 +22,8 @@ char *unstringize_newlines(char *orig_str) /* convert "\n" string (2 characters)
 	char *new_str = malloc((length+1)*sizeof(char)); /* +1 so that there's space for '\0' */
 	int i = 0; /* index of orig_str */
 	int j = 0; /* index of new_str */
-	char current_char, prior_char;
+	char current_char;
+	char prior_char = '\0';
 
 	while (1)
 	{
