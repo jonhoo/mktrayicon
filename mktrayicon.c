@@ -85,6 +85,7 @@ gpointer watch_fifo(gpointer argv)
 {
 	char *buf = malloc(1024*sizeof(char));
 	char cmd;
+	char quote;
 	char *param;
 	char *tmp = malloc(1024*sizeof(char));
 	char *read;
@@ -133,7 +134,7 @@ gpointer watch_fifo(gpointer argv)
 		len = strlen(read);
 		if (len < 3) {
 			param = NULL;
-		} else if (*(read + 2) != '\'') {
+		} else if (*(read + 2) != '\'' && *(read + 2) != '"') {
 			// unquoted string
 			read += 2;
 			len -= 2;
@@ -151,6 +152,7 @@ gpointer watch_fifo(gpointer argv)
 			strncpy(param, read, len+1);
 		} else {
 			// quoted string
+			quote = *(read+2);
 			read += 3;
 			len -= 3;
 			*tmp = '\0';
@@ -170,7 +172,7 @@ gpointer watch_fifo(gpointer argv)
 						}
 						i -= 1;
 					}
-					if (tmp[i] == '\'') {
+					if (tmp[i] == quote) {
 						// maybe the end!
 						// let's make sure it isn't escaped
 						if (i >= 2 && tmp[i-2] == '\\') {
