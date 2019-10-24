@@ -13,8 +13,6 @@
 #include <unistd.h>
 #include <ctype.h>
 
-#define DEBUG 1
-
 GtkStatusIcon *icon;
 char *onclick = NULL;
 
