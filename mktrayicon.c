@@ -111,14 +111,11 @@ gpointer watch_fifo(gpointer argv)
 
 	/* inner is for read */
 	while (1) {
-		fprintf(stderr, "reading\n");
 		read = fgets(buf, 1024 * sizeof(char), fifo);
-		fprintf(stderr, "read\n");
 
 		if (read == NULL) {
 			/* no more data in pipe, reopen and block */
 			fclose(fifo);
-			fprintf(stderr, "closed\n");
 			goto outer;
 		}
 
@@ -129,12 +126,10 @@ gpointer watch_fifo(gpointer argv)
 
 		if (*read == '\0') {
 			/* empty command */
-			fprintf(stderr, "empty\n");
 			continue;
 		}
 
 		cmd = *read;
-		fprintf(stderr, "cmd %c\n", cmd);
 		len = strlen(read);
 		if (len < 3) {
 			param = NULL;
