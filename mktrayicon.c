@@ -19,7 +19,7 @@ char *unstringize_newlines(char *orig_str) /* copy orig_str to new_str, but conv
 {                                          /* to '\n' (1 character) in new_str; do the same thing for "\t" to '\t' */
 	int length;
 	length = strlen(orig_str);
-	char *new_str = malloc((length)*sizeof(char)); /* +1 so that there's always space for '\0' */
+	char *new_str = malloc((length+1)*sizeof(char)); /* +1 so that there's always space for '\0' */
 	int i = 0; /* index of orig_str */
 	int j = 0; /* index of new_str */
 	char current_char;
