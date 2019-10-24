@@ -15,11 +15,11 @@
 GtkStatusIcon *icon;
 char *onclick = NULL;
 
-char *unstringize_newlines(char *orig_str) /* convert "\n" string (2 characters) to '\n' (1 character); also "\t" to '\t' */
-{
+char *unstringize_newlines(char *orig_str) /* copy orig_str to new_str, but convert any "\n" (2 characters) in orig_str */
+{                                          /* to '\n' (1 character) in new_str; do the same thing for "\t" to '\t' */
 	int length;
 	length = strlen(orig_str);
-	char *new_str = malloc((length+1)*sizeof(char)); /* +1 so that there's space for '\0' */
+	char *new_str = malloc((length)*sizeof(char)); /* +1 so that there's always space for '\0' */
 	int i = 0; /* index of orig_str */
 	int j = 0; /* index of new_str */
 	char current_char;
@@ -31,7 +31,7 @@ char *unstringize_newlines(char *orig_str) /* convert "\n" string (2 characters)
 
 		if (current_char == '\0') /* finish copying */
 		{
-			new_str[j] = orig_str[i];
+			new_str[j] = current_char;
 			break;
 		}
 
@@ -41,7 +41,7 @@ char *unstringize_newlines(char *orig_str) /* convert "\n" string (2 characters)
 		else /* current_char is not backslash */
 		{
 			if (prior_char != '\\')
-				new_str[j] = orig_str[i];
+				new_str[j] = current_char;
 			else /* prior_char is backslash */
 			{
 				if (current_char == 'n')
@@ -52,7 +52,7 @@ char *unstringize_newlines(char *orig_str) /* convert "\n" string (2 characters)
 				{
 					new_str[j] = '\\';
 					j++;
-					new_str[j] = orig_str[i];
+					new_str[j] = current_char;
 				}
 			}
 		i++;
