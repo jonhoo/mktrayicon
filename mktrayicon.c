@@ -11,6 +11,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <ctype.h>
 
 GtkStatusIcon *icon;
 char *onclick = NULL;
@@ -81,19 +82,22 @@ gboolean do_quit(gpointer data)
 gpointer watch_fifo(gpointer argv)
 {
 	char *buf = malloc(1024*sizeof(char));
+	char cmd;
+	char quote;
 	char *param;
+	char *tmp = malloc(1024*sizeof(char));
 	char *read;
-	size_t len;
+	size_t len, i;
 	char *fifo_path = (char*)argv;
 	FILE *fifo;
 	struct stat fifo_st;   
 
 	/* outer is for open */
-	while (1) {
+	outer: while (1) {
 		if (stat(fifo_path, &fifo_st) != 0) {
 			perror("FIFO does not exist, exiting\n");
 			gdk_threads_add_idle(do_quit, fifo);
-			break;
+			return NULL;
 		}
 
 		fifo = fopen(fifo_path, "r");
@@ -101,7 +105,7 @@ gpointer watch_fifo(gpointer argv)
 		if (fifo == NULL) {
 			perror("FIFO went away, exiting\n");
 			gdk_threads_add_idle(do_quit, fifo);
-			break;
+			return NULL;
 		}
 
 	/* inner is for read */
@@ -111,7 +115,7 @@ gpointer watch_fifo(gpointer argv)
 		if (read == NULL) {
 			/* no more data in pipe, reopen and block */
 			fclose(fifo);
-			break;
+			goto outer;
 		}
 
 		/* trim string */
@@ -124,25 +128,96 @@ gpointer watch_fifo(gpointer argv)
 			continue;
 		}
 
-		/* get rid of trailing newline */
-		len = strlen(buf);
-		buf[len-1] = '\0';
-		len -= 1;
-
-		/* we have to malloc this on every call, because the memory is
-		 * reused and the _idle functions are called asynchronously */
+		cmd = *read;
+		len = strlen(read);
 		if (len < 3) {
-			param = malloc(1*sizeof(char));
-			*param = '\0';
+			param = NULL;
+		} else if (*(read + 2) != '\'' && *(read + 2) != '"') {
+			// unquoted string
+			read += 2;
+			len -= 2;
+			// trim trailing whitespace
+			i = len - 1;
+			while (i > 0) {
+				if (!isspace(read[i])) {
+					len = i + 1;
+					read[len] = '\0';
+					break;
+				}
+				i -= 1;
+			}
+			param = malloc((len+1)*sizeof(char));
+			strncpy(param, read, len+1);
 		} else {
-			param = malloc((len-2+1)*sizeof(char));
-			strncpy(param, buf+2, len-2+1);
+			// quoted string
+			quote = *(read+2);
+			read += 3;
+			len -= 3;
+			*tmp = '\0';
+			*(tmp+1024-1) = '\0';
+			// keep track of what we have so far
+			strncpy(tmp, read, 1023);
+
+			// now keep reading until we have the end quote
+			while (1) {
+				// check for terminating '
+				if (len != 0) {
+					// search backwards past whitespace
+					i = len - 1;
+					while (i > 0) {
+						if (!isspace(tmp[i])) {
+							break;
+						}
+						i -= 1;
+					}
+					if (tmp[i] == quote) {
+						// maybe the end!
+						// let's make sure it isn't escaped
+						if (i >= 2 && tmp[i-2] == '\\') {
+						} else {
+							// it's not!
+							// we're done.
+							// trim off the ' and
+							// any whitespace we walked past
+							len = i;
+							tmp[len] = '\0';
+							break;
+						}
+					}
+				}
+
+				if (len == 1023) {
+					// we can't read any more
+					// but also haven't found the end
+					// forcibly terminate the string
+					fprintf(stderr, "Quoted string too long (max 1023 chars)\n");
+					break;
+				}
+
+				// we don't have the end of the string yet
+				read = fgets(buf, 1024 * sizeof(char), fifo);
+				if (read == NULL) {
+					/* no more data in pipe, reopen and block */
+					fclose(fifo);
+					goto outer;
+				}
+				// note that we don't trim here, because we're
+				// in a quoted string.
+				strncpy(tmp + len, read, 1023 - len);
+				len += strlen(tmp + len);
+			}
+
+			// quoted string is now in param[0:len]
+			param = malloc((len+1)*sizeof(char));
+			strncpy(param, tmp, len+1);
 		}
 
-		switch (*buf) {
+		switch (cmd) {
 		case 'q':
 			gdk_threads_add_idle(do_quit, param);
-			free(param);
+			if (param != NULL) {
+				free(param);
+			}
 			break;
 		case 't': /* tooltip */
 			gdk_threads_add_idle(set_tooltip, param);
@@ -152,11 +227,15 @@ gpointer watch_fifo(gpointer argv)
 			break;
 		case 'h': /* hide */
 			gdk_threads_add_idle(set_visible, (void *)0);
-			free(param);
+			if (param != NULL) {
+				free(param);
+			}
 			break;
 		case 's': /* show */
 			gdk_threads_add_idle(set_visible, (void *)1);
-			free(param);
+			if (param != NULL) {
+				free(param);
+			}
 			break;
 		case 'c': /* click */
 			if (onclick != NULL) {
@@ -164,7 +243,7 @@ gpointer watch_fifo(gpointer argv)
 				onclick = NULL;
 			}
 
-			if (*param == '\0') {
+			if (param != NULL && *param == '\0') {
 #ifdef DEBUG
 				printf("Removing onclick handler\n");
 #endif
@@ -178,11 +257,15 @@ gpointer watch_fifo(gpointer argv)
 			break;
 		case 'm': /* menu */
 			fprintf(stderr, "Menu command not yet implemented\n");
-			free(param);
+			if (param != NULL) {
+				free(param);
+			}
 			break;
 		default:
 			fprintf(stderr, "Unknown command: '%c'\n", *buf);
-			free(param);
+			if (param != NULL) {
+				free(param);
+			}
 		}
 
 		gdk_flush();
@@ -213,7 +296,6 @@ int main(int argc, char **argv)
 	char *start_icon = "none";
 	char *tooltip = NULL;
 	char *pipe = NULL;
-	FILE *fifo;
 	GThread *reader;
 
 	XInitThreads(); /* see http://stackoverflow.com/a/18690540/472927 */

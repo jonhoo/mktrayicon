@@ -33,6 +33,12 @@ Note that any script communicating with `mktrayicon` via the pipe **must**, for
 the time being, send `q` when they are done. Just removing the FIFO file will 
 **not** cause the tray icon to be removed.
 
+The command argument can be quoted with either `'` or `"` if you wish
+it to include newlines. Other string interpolation may be added later.
+Quoted strings are terminated by a matching quote at the end of a line
+(ignoring whitespace). To escape a quote character at the end of a line
+to continue a quoted string, prefix it with a `\`.
+
 ## Why?
 
 Because I wanted to be able to create tray icons from bash without all the
