@@ -32,6 +32,13 @@ char* strncpy_esc(char *dest, const char *src, size_t n)
 	return dest;
 }
 
+char* save_word(char* src, int i_del, int last){
+	char* dest = malloc((i_del-last) * sizeof(char));
+	strncpy_esc(dest, src+last+1, i_del-last-1);
+	dest[i_del-last-1] = '\0';
+	return dest;
+}
+
 /*
  * Struct that stores the label names on the menu and
  * their corresponding actions when the user selects them
@@ -291,6 +298,7 @@ gpointer watch_fifo(gpointer argv)
 #ifdef DEBUG
 				printf("Removing onclick handler\n");
 #endif
+				free(param);
 				break;
 			}
 
@@ -320,71 +328,84 @@ gpointer watch_fifo(gpointer argv)
 #ifdef DEBUG
 				printf("Removing onmenu handler\n");
 #endif
+				free(param);
 				break;
 			}
 
-			// This block makes sure that the parameter after 'm' is well defined
-			int commas = 0;
+			// This block makes sure that the parameter after 'm' is ready to be processed
+			
+			char* initial = param; 
+			//we save so that we can free later even if we increase the pointer
+			
+			while (param[0] == ',' || param[0] == '|'){
+				// ignore delimiter characters in first spot
+				param++;
+				len--;
+			}
+			while ((param[len-1] == ',' || param[len-1] == '|') && param[len-2] != '\\'){
+				// ignore delimiters at the end too
+				// it also helps dividing the string in entries -> bars+1
+				param[len-1] = '\0';
+				len--;
+			}
+
+			// we can't accept 2 straight commas, as it becomes ambiguous
+			int straight = 0;
 			int bars = 0;
-			if (len < 3){
-				break;
-			}
-			if (param[0] == ',' || param[0] == '|'){
-				printf("Action string cannot begin with ',' or '|'. Use '\\' to escape\n");
-				break;
-			}
-			if (param[len-2] == '|' && param[len-3] != '\\'){
-				printf("'|' can't be second of last. Use '\\' to escape\n");
-				break;
-			}
-			if (param[len-1] == ',' && param[len-2] != '\\'){
-				printf("',' can't be last. Use '\\' to escape\n");
-				break;
-			}
-			int i = 1; 
-			while (i < len - 1){
-				if (commas > bars + 1 || bars > commas)
-					break;
-				if (param[i] == ',' && param[i-1] != '\\')
-					commas++;
-				else if (param[i] == '|' && param[i-1] != '\\')
+			for (int i = 0; i < len; i++){
+				if (param[i] == ',' && param[i-1] != '\\'){
+					straight++;
+					if(straight == 2)
+						break;
+				}
+				else if (param[i] == '|' && param[i-1] != '\\' ){
+					straight = 0;
 					bars++;
-				i++;
+				}
 			}
-			if (commas > bars + 1 || bars > commas){
-				printf("Unbalanced ',' or '|'. Use '\\' to escape\n");
+			if (straight == 2){
+				printf("Two straight ',' found. Use '\\' to escape\n");
+				free(initial);
 				break;
 			}
 			// End of block that checks the parameter
 			
 			// Create the onmenu array which stores structs with name, action properties
-			menusize = commas;
+			menusize = bars + 1;
 			onmenu = malloc(menusize * sizeof(struct item));
 			menu = gtk_menu_new();
 			int last = -1;
 			int item = 0;
-			i = 1;
-			while(item < menusize && param[i] != '\0'){
+			char lastFound = '|'; // what was the last delimiter processed
+			for(int i = 1; i < len; i++){
 				if (param[i] == ',' && param[i-1] != '\\'){
-					onmenu[item].name = malloc((i-last) * sizeof(char));
-					strncpy_esc(onmenu[item].name, param+last+1, i-last-1);
-					onmenu[item].name[i-last-1] = '\0';
+					onmenu[item].name = save_word(param, i, last);
 					last = i;
+					lastFound = ',';
 				}
 				else if (param[i] == '|' && param[i-1] != '\\'){
-					onmenu[item].action = malloc((i-last) * sizeof(char));
-					strncpy_esc(onmenu[item].action, param+last+1, i-last-1);
-					onmenu[item].action[i-last-1] = '\0';
+					if (lastFound == ','){ // we have found a ',' so we read an action
+						onmenu[item].action = save_word(param, i, last);
+					}
+					else { //this is a label-only entry
+						onmenu[item].name = save_word(param, i, last);
+						onmenu[item].action = "\0";
+					}
 					last = i;
+					lastFound = '|';
 					item++;
 				}
-				i++;
 			}
 			if(item < menusize){ //haven't read all actions because last one didn't end with a '|'
-				onmenu[item].action = malloc((len-last) * sizeof(char));
-				strncpy_esc(onmenu[item].action, param+last+1, len-last-1);
-				onmenu[item].action[len-last-1] = '\0';
+				if (lastFound == ','){
+					onmenu[item].action = save_word(param, len, last);
+				}
+				else{
+					onmenu[item].name = save_word(param, len, last);
+					onmenu[item].action = "\0";
+				}
 			}
+
 			// Now create the menu item widgets and attach them on the menu
 			for (int i = 0; i < menusize; i++){
 				GtkWidget* w = gtk_menu_item_new_with_label(onmenu[i].name);
@@ -392,7 +413,7 @@ gpointer watch_fifo(gpointer argv)
 				g_signal_connect(G_OBJECT(w), "activate", G_CALLBACK(click_menu_item), NULL);
 			}
 			gtk_widget_show_all(menu);
-
+			free(initial);
 			break;
 		default:
 			fprintf(stderr, "Unknown command: '%c'\n", *buf);
