@@ -392,7 +392,7 @@ gpointer watch_fifo(gpointer argv)
 					else { //this is a label-only entry
 						onmenu[item].name = save_word(param, i, last);
 						onmenu[item].action = malloc(1); // pointer has to be freeable
-						onmenu[item].action = '\0';
+						*onmenu[item].action = '\0';
 					}
 					last = i;
 					lastFound = '|';
@@ -406,7 +406,7 @@ gpointer watch_fifo(gpointer argv)
 				else{
 					onmenu[item].name = save_word(param, len, last);
 					onmenu[item].action = malloc(1);
-					onmenu[item].action = '\0';
+					*onmenu[item].action = '\0';
 				}
 			}
 
