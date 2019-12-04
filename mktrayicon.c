@@ -335,23 +335,7 @@ gpointer watch_fifo(gpointer argv)
 			}
 
 			// This block makes sure that the parameter after 'm' is ready to be processed
-			
-			char* initial = param; 
-			//we save so that we can free later even if we increase the pointer
-			
-			while (param[0] == ',' || param[0] == '|'){
-				// ignore delimiter characters in first spot
-				param++;
-				len--;
-			}
-			while ((param[len-1] == ',' || param[len-1] == '|') && param[len-2] != '\\'){
-				// ignore delimiters at the end too
-				// it also helps dividing the string in entries -> bars+1
-				param[len-1] = '\0';
-				len--;
-			}
-
-			// we can't accept 2 straight commas, as it becomes ambiguous
+			// We can't accept 2 straight commas, as it becomes ambiguous
 			int straight = 0;
 			int bars = 0;
 			for (int i = 0; i < len; i++){
@@ -367,7 +351,7 @@ gpointer watch_fifo(gpointer argv)
 			}
 			if (straight == 2){
 				printf("Two straight ',' found. Use '\\' to escape\n");
-				free(initial);
+				free(param);
 				break;
 			}
 			// End of block that checks the parameter
@@ -379,7 +363,7 @@ gpointer watch_fifo(gpointer argv)
 			int last = -1;
 			int item = 0;
 			char lastFound = '|'; // what was the last delimiter processed
-			for(int i = 1; i < len; i++){
+			for(int i = 0; i < len; i++){
 				if (param[i] == ',' && param[i-1] != '\\'){
 					onmenu[item].name = save_word(param, i, last);
 					last = i;
@@ -417,7 +401,7 @@ gpointer watch_fifo(gpointer argv)
 				g_signal_connect(G_OBJECT(w), "activate", G_CALLBACK(click_menu_item), NULL);
 			}
 			gtk_widget_show_all(menu);
-			free(initial);
+			free(param);
 			break;
 		default:
 			fprintf(stderr, "Unknown command: '%c'\n", *buf);
