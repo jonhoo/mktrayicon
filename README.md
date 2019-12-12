@@ -43,10 +43,15 @@ Quoted strings are terminated by a matching quote at the end of a line
 to continue a quoted string, prefix it with a `\`.
 
 The m(enu) command uses `,` as a delimiter between label and command and `|` as a delimiter
-between entries (label+command). If you want to use these 2 characters in a label or command, you have to escape 
-them with `\`.
+between entries (label+command).   
+If you want to use these 2 characters in a label or command, you have to escape 
+them with `\`.  
+If you want to have an entry with just a label and no command to be executed, you can ommit the 
+`,<cmd>` part.  
+If you want an empty label, you can just add a second `|` delimiter after the previous one.  
+If you want a command to be executed upon selection of an empty label, you can add `,<cmd>` after the previous `|` 
 
-Example command: `echo "m Browser,firefox|Terminal,xterm" > /tmp/test` (where `mkfifo /tmp/test` has been executed before)
+Example command: `echo "m Browser,firefox|Terminal,xterm|Label-only||,chromium" > /tmp/test` (where `mkfifo /tmp/test` has been executed before)
 
 ## Why?
 
