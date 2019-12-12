@@ -33,8 +33,9 @@ char* strncpy_esc(char *dest, const char *src, size_t n)
 			i++;
 		}
 	}
-	for ( ; index < n; index++)
+	for ( ; index < n; index++){
 	   dest[index] = '\0';
+	}
 	return dest;
 }
 
@@ -74,9 +75,11 @@ void tray_icon_on_click(GtkStatusIcon *status_icon,
 void click_menu_item(GtkMenuItem *menuitem, gpointer user_data)
 {
 	const char* label = gtk_menu_item_get_label(menuitem);
-	for (int i = 0; i < menusize; i++)
-		if(strcmp(label,onmenu[i].name) == 0 && fork() == 0)
+	for (int i = 0; i < menusize; i++){
+		if(strcmp(label,onmenu[i].name) == 0 && fork() == 0){
 			execl("/bin/sh", "sh", "-c", onmenu[i].action, (char *) NULL);
+		}
+	}
 }
 
 void tray_icon_on_menu(GtkStatusIcon *status_icon, guint button, 
@@ -85,8 +88,9 @@ void tray_icon_on_menu(GtkStatusIcon *status_icon, guint button,
 #ifdef DEBUG
 	printf("Popup menu\n");
 #endif
-	if (menusize)
+	if (menusize){
 		gtk_menu_popup_at_pointer((GtkMenu *)menu, NULL);
+	}
 }
 
 gboolean set_tooltip(gpointer data)
@@ -330,8 +334,9 @@ gpointer watch_fifo(gpointer argv)
 			
 			menusize = 0;
 			
-			if(!param)
+			if(!param){
 				break;
+			}
 			else if (*param == '\0') {
 #ifdef DEBUG
 				printf("Removing onmenu handler\n");
@@ -347,8 +352,9 @@ gpointer watch_fifo(gpointer argv)
 			for (int i = 0; i < len; i++){
 				if (param[i] == ',' && param[i-1] != '\\'){
 					straight++;
-					if(straight == 2)
+					if(straight == 2){
 						break;
+					}
 				}
 				else if (param[i] == '|' && param[i-1] != '\\' ){
 					straight = 0;
@@ -411,7 +417,7 @@ gpointer watch_fifo(gpointer argv)
 			break;
 		default:
 			fprintf(stderr, "Unknown command: '%c'\n", *buf);
-			if (param != NULL) {
+			if (param != NULL){
 				free(param);
 			}
 		}
