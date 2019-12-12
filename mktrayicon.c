@@ -13,6 +13,50 @@
 #include <unistd.h>
 #include <ctype.h>
 
+/*
+ * This function is made because it's needed to escape the '\' character
+ * The basic code has been taken from the man pages of the strncpy function
+ */
+char* strncpy_esc(char *dest, const char *src, size_t n)
+{
+	size_t i = 0;
+	size_t index = 0;
+	while (i < n && src[i] != '\0'){
+		if (src[i] == '\\' && src[i+1] != '\0'){
+			dest[index] = src[i+1];
+			index++;
+			i+=2;
+		}
+		else{
+			dest[index] = src[i];
+			index++;
+			i++;
+		}
+	}
+	for ( ; index < n; index++){
+	   dest[index] = '\0';
+	}
+	return dest;
+}
+
+char* save_word(char* src, int i_del, int last){
+	char* dest = malloc((i_del-last) * sizeof(char));
+	strncpy_esc(dest, src+last+1, i_del-last-1);
+	dest[i_del-last-1] = '\0';
+	return dest;
+}
+
+/*
+ * Struct that stores the label names on the menu and
+ * their corresponding actions when the user selects them
+ */
+struct item{
+	char* name;
+	char* action;
+} *onmenu;
+int menusize = 0; //number of menu entries
+GtkWidget* menu = NULL;
+
 GtkStatusIcon *icon;
 char *onclick = NULL;
 
@@ -24,12 +68,29 @@ void tray_icon_on_click(GtkStatusIcon *status_icon,
 	}
 }
 
+/*
+ * Callback function for when an entry is selected from the menu
+ * We loop over all entry names to find what action to execute
+ */
+void click_menu_item(GtkMenuItem *menuitem, gpointer user_data)
+{
+	const char* label = gtk_menu_item_get_label(menuitem);
+	for (int i = 0; i < menusize; i++){
+		if(strcmp(label,onmenu[i].name) == 0 && fork() == 0){
+			execl("/bin/sh", "sh", "-c", onmenu[i].action, (char *) NULL);
+		}
+	}
+}
+
 void tray_icon_on_menu(GtkStatusIcon *status_icon, guint button, 
 		       guint activate_time, gpointer user_data)
 {
 #ifdef DEBUG
 	printf("Popup menu\n");
 #endif
+	if (menusize){
+		gtk_menu_popup_at_pointer((GtkMenu *)menu, NULL);
+	}
 }
 
 gboolean set_tooltip(gpointer data)
@@ -247,6 +308,7 @@ gpointer watch_fifo(gpointer argv)
 #ifdef DEBUG
 				printf("Removing onclick handler\n");
 #endif
+				free(param);
 				break;
 			}
 
@@ -256,14 +318,106 @@ gpointer watch_fifo(gpointer argv)
 #endif
 			break;
 		case 'm': /* menu */
-			fprintf(stderr, "Menu command not yet implemented\n");
-			if (param != NULL) {
-				free(param);
+			if (onmenu != NULL){
+				//destroy the previous menu
+				for (int i = 0; i < menusize; i++){
+					free(onmenu[i].name);
+					free(onmenu[i].action);
+					onmenu[i].name = NULL;
+					onmenu[i].action = NULL;
+				}
+				free(onmenu);
+				onmenu = NULL;
+				gtk_widget_destroy(menu);
+				menu = NULL;
 			}
+			
+			menusize = 0;
+			
+			if(!param){
+				break;
+			}
+			else if (*param == '\0') {
+#ifdef DEBUG
+				printf("Removing onmenu handler\n");
+#endif
+				free(param);
+				break;
+			}
+
+			// This block makes sure that the parameter after 'm' is ready to be processed
+			// We can't accept 2 straight commas, as it becomes ambiguous
+			int straight = 0;
+			int bars = 0;
+			for (int i = 0; i < len; i++){
+				if (param[i] == ',' && param[i-1] != '\\'){
+					straight++;
+					if(straight == 2){
+						break;
+					}
+				}
+				else if (param[i] == '|' && param[i-1] != '\\' ){
+					straight = 0;
+					bars++;
+				}
+			}
+			if (straight == 2){
+				printf("Two straight ',' found. Use '\\' to escape\n");
+				free(param);
+				break;
+			}
+			// End of block that checks the parameter
+			
+			// Create the onmenu array which stores structs with name, action properties
+			menusize = bars + 1;
+			onmenu = malloc(menusize * sizeof(struct item));
+			menu = gtk_menu_new();
+			int last = -1;
+			int item = 0;
+			char lastFound = '|'; // what was the last delimiter processed
+			for(int i = 0; i < len; i++){
+				if (param[i] == ',' && param[i-1] != '\\'){
+					onmenu[item].name = save_word(param, i, last);
+					last = i;
+					lastFound = ',';
+				}
+				else if (param[i] == '|' && param[i-1] != '\\'){
+					if (lastFound == ','){ // we have found a ',' so we read an action
+						onmenu[item].action = save_word(param, i, last);
+					}
+					else { //this is a label-only entry
+						onmenu[item].name = save_word(param, i, last);
+						onmenu[item].action = malloc(1); // pointer has to be freeable
+						*onmenu[item].action = '\0';
+					}
+					last = i;
+					lastFound = '|';
+					item++;
+				}
+			}
+			if(item < menusize){ //haven't read all actions because last one didn't end with a '|'
+				if (lastFound == ','){
+					onmenu[item].action = save_word(param, len, last);
+				}
+				else{
+					onmenu[item].name = save_word(param, len, last);
+					onmenu[item].action = malloc(1);
+					*onmenu[item].action = '\0';
+				}
+			}
+
+			// Now create the menu item widgets and attach them on the menu
+			for (int i = 0; i < menusize; i++){
+				GtkWidget* w = gtk_menu_item_new_with_label(onmenu[i].name);
+				gtk_menu_shell_append(GTK_MENU_SHELL(menu), w);
+				g_signal_connect(G_OBJECT(w), "activate", G_CALLBACK(click_menu_item), NULL);
+			}
+			gtk_widget_show_all(menu);
+			free(param);
 			break;
 		default:
 			fprintf(stderr, "Unknown command: '%c'\n", *buf);
-			if (param != NULL) {
+			if (param != NULL){
 				free(param);
 			}
 		}

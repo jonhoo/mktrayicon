@@ -23,6 +23,9 @@ are supported:
   - `c <cmnd>`: Set the command to be execute when the user clicks the icon 
 		(`cmnd` is passed to `/bin/sh -c`)
   - `c`: Remove the click handler
+  - `m <label1>,<cmd1>|<label2>,<cmd2>|...`: Set the labels and the corresponding commands to be executed when the user opens the icon menu (right-click usually) 
+		(`cmd#` is passed to `/bin/sh -c`)
+  - `m`: Remove the menu handler
   - `h`: Hide the tray icon
   - `s`: Show the tray icon
 
@@ -38,6 +41,14 @@ it to include newlines. Other string interpolation may be added later.
 Quoted strings are terminated by a matching quote at the end of a line
 (ignoring whitespace). To escape a quote character at the end of a line
 to continue a quoted string, prefix it with a `\`.
+
+The m(enu) command uses `,` as a delimiter between label and command and `|` as a delimiter
+between entries (label+command).If you want to use these 2 characters in a label or command, you have to escape 
+them with `\`. If you want to have an entry with just a label and no command to be executed, you can omit the 
+`,<cmd>` part. If you want an empty label (e.g. as a separator), you can just add a second `|` delimiter after the previous one.
+If you want a command to be executed upon selection of an empty label, you can add `,<cmd>` after the previous `|`.
+
+Example command: `echo "m Browser,firefox|Terminal,xterm|Label-only||,chromium" > /tmp/test` (where `mkfifo /tmp/test` has been executed before)
 
 ## Why?
 
