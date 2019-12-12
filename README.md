@@ -1,60 +1,73 @@
 # mktrayicon
 
-`mktrayicon` is a simple proxy program that lets you create and modify system
-tray icons without having to deal with a graphical toolkit like GTK.
+`mktrayicon` is a simple proxy program that lets you create and modify
+system tray icons without having to deal with a graphical toolkit like
+GTK.
 
-`mktrayicon` can be used two ways: To create an icon that is controlled by a 
-named pipe or, more simply, to create a non-interactive icon.
+`mktrayicon` can be used two ways: To create an icon that is controlled
+by a named pipe or, more simply, to create a non-interactive icon.
 
-If a FIFO is not provided, mktrayicon will run until killed (e.g., `pkill -f 
-'mktrayicon.*<ICON>'`). If you are using a named pipe (FIFO) to control the 
-icon, *the pipe should already be created before you call `mktrayicon`*. 
+If a FIFO is not provided, mktrayicon will run until killed (e.g.,
+`pkill -f 'mktrayicon.*<ICON>'`). If you are using a named pipe (FIFO)
+to control the icon, *the pipe should already be created before you call
+`mktrayicon`*.
 
-Every line written to the pipe should contain a single letter specifying what
-operation to perform, optionally followed by a space and a parameter to the
-command. Each command should be terminated by a newline. The following commands
-are supported:
+Every line written to the pipe should contain a single letter specifying
+what operation to perform, optionally followed by a space and a
+parameter to the command. Each command should be terminated by a
+newline. The following commands are supported:
 
   - `q`: Terminate `mktrayicon` and remove the tray icon
-  - `i <icon>`: Set the graphic to use for the tray icon; it can be a stock icon
-		name (see `/usr/share/icons`) or path to a custom icon
+  - `i <icon>`: Set the graphic to use for the tray icon; it can be a
+    stock icon name (see `/usr/share/icons`) or path to a custom icon
   - `t <text>`: Set the text to display in the icon tooltip
   - `t`: Remove the icon tooltip
-  - `c <cmnd>`: Set the command to be execute when the user clicks the icon 
-		(`cmnd` is passed to `/bin/sh -c`)
+  - `c <cmnd>`: Set the command to be execute when the user clicks the
+    icon (`cmnd` is passed to `/bin/sh -c`)
   - `c`: Remove the click handler
-  - `m <label1>,<cmd1>|<label2>,<cmd2>|...`: Set the labels and the corresponding commands to be executed when the user opens the icon menu (right-click usually) 
-		(`cmd#` is passed to `/bin/sh -c`)
+  - `m <label1>,<cmd1>|<label2>,<cmd2>|...`: Set the labels and the
+    corresponding commands to be executed when the user opens the icon
+    menu (right-click usually) (`cmd#` is passed to `/bin/sh -c`)
   - `m`: Remove the menu handler
   - `h`: Hide the tray icon
   - `s`: Show the tray icon
 
 By default, the `none` tooltip icon is used. To change this, pass `-i
-<stock_icon_name>` or `-i <path_to_custom_icon>` when running `mktrayicon`.
+<stock_icon_name>` or `-i <path_to_custom_icon>` when running
+`mktrayicon`.
 
-Note that any script communicating with `mktrayicon` via the pipe **must**, for 
-the time being, send `q` when they are done. Just removing the FIFO file will 
-**not** cause the tray icon to be removed.
+Note that any script communicating with `mktrayicon` via the pipe
+**must**, for the time being, send `q` when they are done. Just removing
+the FIFO file will **not** cause the tray icon to be removed.
 
-The command argument can be quoted with either `'` or `"` if you wish
-it to include newlines. Other string interpolation may be added later.
+The command argument can be quoted with either `'` or `"` if you wish it
+to include newlines. Other string interpolation may be added later.
 Quoted strings are terminated by a matching quote at the end of a line
 (ignoring whitespace). To escape a quote character at the end of a line
 to continue a quoted string, prefix it with a `\`.
 
-The m(enu) command uses `,` as a delimiter between label and command and `|` as a delimiter
-between entries (label+command).If you want to use these 2 characters in a label or command, you have to escape 
-them with `\`. If you want to have an entry with just a label and no command to be executed, you can omit the 
-`,<cmd>` part. If you want an empty label (e.g. as a separator), you can just add a second `|` delimiter after the previous one.
-If you want a command to be executed upon selection of an empty label, you can add `,<cmd>` after the previous `|`.
+The m(enu) command uses `,` as a delimiter between label and command and
+`|` as a delimiter between entries (label+command).If you want to use
+these 2 characters in a label or command, you have to escape them with
+`\`. If you want to have an entry with just a label and no command to be
+executed, you can omit the `,<cmd>` part. If you want an empty label
+(e.g. as a separator), you can just add a second `|` delimiter after the
+previous one. If you want a command to be executed upon selection of an
+empty label, you can add `,<cmd>` after the previous `|`.
 
-Example command: `echo "m Browser,firefox|Terminal,xterm|Label-only||,chromium" > /tmp/test` (where `mkfifo /tmp/test` has been executed before)
+Example command:
+
+```console
+$ echo "m Browser,firefox|Terminal,xterm|Label-only||,chromium" > /tmp/test
+$ # (where `mkfifo /tmp/test` has been executed before)
+```
 
 ## Why?
 
-Because I wanted to be able to create tray icons from bash without all the
-hassle of interacting with GTK. Now I can create scripts for measuring stuff and
-instantly make tray icons out of them (3G signal strength for example).
+Because I wanted to be able to create tray icons from bash without all
+the hassle of interacting with GTK. Now I can create scripts for
+measuring stuff and instantly make tray icons out of them (3G signal
+strength for example).
 
 ## Example run
 
@@ -98,8 +111,9 @@ rm /tmp/$$.icon
 
 ## Known bugs
 
-This is my first time using the GTK+ C library, and I've got to say it is less
-than pleasant to work with. My biggest issue has been trying to do blocking IO
-without blocking the GUI thread, as GTK seems to not like that.
+This is my first time using the GTK+ C library, and I've got to say it
+is less than pleasant to work with. My biggest issue has been trying to
+do blocking IO without blocking the GUI thread, as GTK seems to not like
+that.
 
 **Patches are very welcome!**
