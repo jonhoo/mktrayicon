@@ -395,10 +395,15 @@ outer:
 
         // Now create the menu item widgets and attach them on the menu
         for (int i = 0; i < menusize; i++) {
-          GtkWidget *w = gtk_menu_item_new_with_label(onmenu[i].name);
-          gtk_menu_shell_append(GTK_MENU_SHELL(menu), w);
-          g_signal_connect(G_OBJECT(w), "activate", G_CALLBACK(click_menu_item),
-                           NULL);
+          if (strncmp(onmenu[i].name, "-----", 5) == 0) {
+            GtkWidget *w = gtk_separator_menu_item_new() ;
+            gtk_menu_shell_append(GTK_MENU_SHELL(menu), w);
+          } else {
+            GtkWidget *w = gtk_menu_item_new_with_label(onmenu[i].name);
+            gtk_menu_shell_append(GTK_MENU_SHELL(menu), w);
+            g_signal_connect(G_OBJECT(w), "activate", G_CALLBACK(click_menu_item),
+                             NULL);
+          }
         }
         gtk_widget_show_all(menu);
         free(param);
