@@ -52,6 +52,8 @@ struct item {
   char *name;
   char *action;
 } * onmenu;
+char *onscrollup = NULL;
+char *onscrolldown = NULL;
 int menusize = 0; // number of menu entries
 GtkWidget *menu = NULL;
 
@@ -84,6 +86,30 @@ void tray_icon_on_menu(GtkStatusIcon *status_icon, guint button,
 #endif
   if (menusize) {
     gtk_menu_popup_at_pointer((GtkMenu *)menu, NULL);
+  }
+}
+
+void tray_icon_on_scroll(GtkStatusIcon *status_icon, GdkEventScroll *event,
+                       gpointer user_data) {
+  char *i = NULL;
+  switch (event->direction) {
+    case GDK_SCROLL_UP:
+      i = "up";
+      if (onscrollup != NULL && fork() == 0)
+        execl("/bin/sh", "sh", "-c", onscrollup, (char *)NULL);
+      break;
+    case GDK_SCROLL_DOWN:
+      i = "down";
+      if (onscrolldown != NULL && fork() == 0)
+        execl("/bin/sh", "sh", "-c", onscrolldown, (char *)NULL);
+      break;
+  }
+
+  if (i != NULL) {
+  #ifdef DEBUG
+    printf("scroll %s\n",i);
+  #endif
+
   }
 }
 
@@ -403,6 +429,20 @@ outer:
         gtk_widget_show_all(menu);
         free(param);
         break;
+      case 'R': /* mouse scroll up */
+        if (onscrollup != NULL) {
+          free(onscrollup);
+        }
+        onscrollup = malloc(strlen(param));
+        strncpy(onscrollup, param, len + 1);
+        break;
+      case 'r': /* mouse scroll down */
+        if (onscrolldown != NULL) {
+          free(onscrolldown);
+        }
+        onscrolldown = malloc(strlen(param));
+        strncpy(onscrolldown, param, len + 1);
+        break;
       default:
         fprintf(stderr, "Unknown command: '%c'\n", *buf);
         if (param != NULL) {
@@ -428,6 +468,8 @@ static GtkStatusIcon *create_tray_icon(char *start_icon) {
                    G_CALLBACK(tray_icon_on_click), NULL);
   g_signal_connect(G_OBJECT(tray_icon), "popup-menu",
                    G_CALLBACK(tray_icon_on_menu), NULL);
+  g_signal_connect(G_OBJECT(tray_icon), "scroll-event",
+                   G_CALLBACK(tray_icon_on_scroll), NULL);
   gtk_status_icon_set_visible(tray_icon, TRUE);
 
   return tray_icon;
