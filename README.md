@@ -50,7 +50,8 @@ The m(enu) command uses `,` as a delimiter between label and command and
 `|` as a delimiter between entries (label+command). If you want to use
 these two characters in a label or command, you have to escape them with
 `\`. You can make a blank label or a label without an action by leaving
-out the `label` or `cmd` respectively. For example:
+out the `label` or `cmd` respectively. Use `-----` or an empty label to
+insert a menu separator. For example:
 
 ```console
 $ echo "m Browser,firefox|Terminal,xterm|Label-only||,chromium" > /tmp/test
@@ -62,7 +63,7 @@ Would give you a menu with five entries:
  - "Browser", which launches `firefox` when clicked
  - "Terminal", which launches `xterm` when clicked
  - "Label-only", which does nothing if clicked
- - An unlabeled, inactive entry (useful as a separator)
+ - A separator
  - An unlabeled entry which launches `chromium` when clicked
 
 ## Why?

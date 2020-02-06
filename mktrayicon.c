@@ -397,7 +397,7 @@ outer:
         // Now create the menu item widgets and attach them on the menu
         for (int i = 0; i < menusize; i++) {
           GtkWidget *w;
-          if (strncmp(onmenu[i].name, "-----", 5) == 0) {
+          if (0 == strlen(onmenu[i].name) || (!strncmp(onmenu[i].name, "-----", 5))) {
             w = gtk_separator_menu_item_new() ;
           } else {
             w = gtk_menu_item_new_with_label(onmenu[i].name);
