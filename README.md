@@ -31,6 +31,12 @@ newline. The following commands are supported:
   - `m`: Remove the menu handler
   - `h`: Hide the tray icon
   - `s`: Show the tray icon
+  - `R <cmnd>`: Set the command to execute when the user scrolls the
+    mouse wheel up
+  - `r <cmnd>`: Set the command to execute when the user scrolls the
+    mouse wheel down
+  - `S <cmnd>`: Set the command to execute when the user middle-clicks
+    the tray icon
 
 By default, the `none` tooltip icon is used. To change this, pass `-i
 <stock_icon_name>` or `-i <path_to_custom_icon>` when running
