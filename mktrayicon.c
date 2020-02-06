@@ -1,6 +1,7 @@
 /*
  * @author Jon Gjengset <jon@tsp.io>
  * @see http://blog.sacaluta.com/2007/08/gtk-system-tray-icon-example.html
+ * vim: softtabstop=2 shiftwidth=2 tabstop=2
  */
 #include <X11/Xlib.h>
 #include <glib.h>
@@ -395,15 +396,15 @@ outer:
 
         // Now create the menu item widgets and attach them on the menu
         for (int i = 0; i < menusize; i++) {
+          GtkWidget *w;
           if (strncmp(onmenu[i].name, "-----", 5) == 0) {
-            GtkWidget *w = gtk_separator_menu_item_new() ;
-            gtk_menu_shell_append(GTK_MENU_SHELL(menu), w);
+            w = gtk_separator_menu_item_new() ;
           } else {
-            GtkWidget *w = gtk_menu_item_new_with_label(onmenu[i].name);
-            gtk_menu_shell_append(GTK_MENU_SHELL(menu), w);
+            w = gtk_menu_item_new_with_label(onmenu[i].name);
             g_signal_connect(G_OBJECT(w), "activate", G_CALLBACK(click_menu_item),
                              NULL);
           }
+          gtk_menu_shell_append(GTK_MENU_SHELL(menu), w);
         }
         gtk_widget_show_all(menu);
         free(param);
@@ -438,6 +439,19 @@ static GtkStatusIcon *create_tray_icon(char *start_icon) {
   return tray_icon;
 }
 
+int print_usage(char **argv) {
+  printf("Usage: %s [-i ICON] [-t TOOLTIP] [-h] [FIFO]\n", *argv);
+  printf("Create a system tray icon as specified\n");
+  printf("\n");
+  printf("  -i ICON\tUse the specified ICON when initializing\n");
+  printf("  -t TOOLTIP\tUse the specified TOOLTIP when initializing\n");
+  printf("  -h \t\tDisplay this help message\n");
+  printf("\n");
+  printf("If a FIFO is not provided, mktrayicon will run until killed\n");
+  printf("Report bugs at https://github.com/jonhoo/mktrayicon\n");
+  return 0;
+}
+
 int main(int argc, char **argv) {
   char *start_icon = "none";
   char *tooltip = NULL;
@@ -448,19 +462,11 @@ int main(int argc, char **argv) {
   gtk_init(&argc, &argv);
 
   if (argc == 1) {
-    printf("Usage: %s [-i ICON] [-t TOOLTIP] [FIFO]\n", *argv);
-    printf("Create a system tray icon as specified\n");
-    printf("\n");
-    printf("  -i ICON\tUse the specified ICON when initializing\n");
-    printf("  -t TOOLTIP\tUse the specified TOOLTIP when initializing\n");
-    printf("\n");
-    printf("If a FIFO is not provided, mktrayicon will run until killed\n");
-    printf("Report bugs at https://github.com/jonhoo/mktrayicon\n");
-    return 0;
+    return print_usage(argv);
   }
 
   int c;
-  while ((c = getopt(argc, argv, "i:t:")) != -1)
+  while ((c = getopt(argc, argv, "i:t:h")) != -1)
     switch (c) {
     case 'i':
       start_icon = optarg;
@@ -468,6 +474,8 @@ int main(int argc, char **argv) {
     case 't':
       tooltip = optarg;
       break;
+    case 'h':
+      return print_usage(argv);
     case '?':
       fprintf(stderr, "Unknown option: %c\n", optopt);
       return 1;
